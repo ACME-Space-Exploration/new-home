@@ -3,10 +3,12 @@
 public class Astronaut : MonoBehaviour
 {
     [SerializeField] HumanStats _stats;
-
+    [SerializeField] float _oxygenConsumption = 0.1f;
+    [SerializeField] float _carbonProduction = 0.05f;
     public static float hungerPerSecond = 0.02f;
     public float thirstPerSecond = 0.03f;
     public float tirednessPerSecond = 0.01f;
+    public float oxygenHealthPerSecond = 0.1f;
     public float hungerHealthPerSecond = 0.01f;
     public float thirstHealthPerSecond = 0.005f;
     public float tirednessHealthPerSecond = 0.001f;
@@ -138,6 +140,13 @@ public class Astronaut : MonoBehaviour
 
     void Update() {
         float deltaTime = Time.deltaTime;
+
+        if (Base.Instance.AvaliableResources.TryUseResource(BaseResourceType.Oxygen, _oxygenConsumption * deltaTime)) {
+            Base.Instance.AvaliableResources.AddResource(BaseResourceType.Carbon, _carbonProduction * deltaTime);
+        } else {
+            decreaseHealth(oxygenHealthPerSecond * deltaTime);
+        }
+
         if (currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
             increaseTiredness(deltaTime);

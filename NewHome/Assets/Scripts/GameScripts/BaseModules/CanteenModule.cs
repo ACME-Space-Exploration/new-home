@@ -30,7 +30,8 @@ public class CanteenModule : BaseModule
     {
         _pauseProduction = !resources.TryUseResource(BaseResourceType.Electricity, _electricityConsumption * deltaTime);
         _pauseProduction = !resources.TryUseResource(BaseResourceType.Water, _waterConsumption * deltaTime);
-        _pauseProduction = !resources.TryUseResource(BaseResourceType.Food, _foodConsumption * deltaTime);
+        if (_astronauts.Count > 0)
+            _pauseProduction = !resources.TryUseResource(BaseResourceType.Food, _foodConsumption * _astronauts.Count * deltaTime);
     }
 
     private void UpdateAstronautsHunger(float deltaTime)
