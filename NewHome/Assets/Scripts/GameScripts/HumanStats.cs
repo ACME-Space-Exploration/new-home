@@ -5,13 +5,19 @@ using UnityEngine;
 public class HumanStats
 {
     public event Action<HumanStats> OnStatsChanged;
-    
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _hungry;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _thirsty;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _stress;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _agility;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _strength;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _health;
+    [Range(0.0f, 1.0f)]
     [SerializeField] float _tiredness;
 
     public float Hungry
