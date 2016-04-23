@@ -16,8 +16,6 @@ public abstract class BaseModule : MonoBehaviour
     [SerializeField]
     protected List<Astronaut> _astronauts = new List<Astronaut>();    
 
-    protected BaseResourcesBalance _baseResources;
-
     private Coroutine _productionUpdateCoroutine = null;
 
     public float Health
@@ -30,11 +28,6 @@ public abstract class BaseModule : MonoBehaviour
 
     public abstract ModuleType ModuleType { get; }
 
-    void OnEnable()
-    {
-        _baseResources = Base.Instance.AvaliableResources;
-    }
-
     void OnDisable()
     {
         if(_productionUpdateCoroutine != null)
@@ -45,7 +38,7 @@ public abstract class BaseModule : MonoBehaviour
     {
         while (true)
         {
-            ApplyResourcesConsumption(_baseResources, Time.deltaTime);
+            ApplyResourcesConsumption(Base.Instance.AvaliableResources, Time.deltaTime);
             ProductionUpdate(Time.deltaTime);
             yield return null;
         }
