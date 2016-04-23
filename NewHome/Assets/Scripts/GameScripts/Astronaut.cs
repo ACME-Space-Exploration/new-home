@@ -4,19 +4,22 @@ public class Astronaut : MonoBehaviour
 {
     [SerializeField] HumanStats _stats;
 
-    public static float hungerPerSecond;
-    public float thirstPerSecond;
-    public float tirednessPerSecond;
-    public float hungerHealthPerSecond;
-    public float thirstHealthPerSecond;
-    public float tirednessHealthPerSecond;
-    public float hungerTreashold;
-    public float thirstTreashold;
-    public float tirednessTreashold;
+    public static float hungerPerSecond = 0.02f;
+    public float thirstPerSecond = 0.03f;
+    public float tirednessPerSecond = 0.01f;
+    public float hungerHealthPerSecond = 0.01f;
+    public float thirstHealthPerSecond = 0.005f;
+    public float tirednessHealthPerSecond = 0.001f;
+    public float hungerTreashold = 0.9f;
+    public float thirstTreashold = 0.8f;
+    public float tirednessTreashold = 0.99f;
+    public BaseModule currentLocation;
+    public BaseModule targetLocation = null;
 
     public HumanStats Stats { get { return _stats; } }
 
     void initAstronaut() {
+        Debug.Log("INIT ASTRONAUT");
         System.Random rnd = new System.Random();
         _stats.Hungry = 0f;
         _stats.Thirsty = 0f;
@@ -25,15 +28,7 @@ public class Astronaut : MonoBehaviour
         _stats.Strength = (float) rnd.NextDouble();
         _stats.Health = 1f;
         _stats.Tiredness = (float) rnd.NextDouble();
-        tirednessPerSecond = 0.01f;
-        hungerPerSecond = 0.02f;
-        thirstPerSecond = 0.03f;
-        hungerTreashold = 0.9f;
-        thirstTreashold = 0.8f;
-        tirednessTreashold = 0.99f;
-        hungerHealthPerSecond = 0.01f;
-        thirstHealthPerSecond = 0.005f;
-        tirednessHealthPerSecond = 0.001f;
+        currentLocation = Base.Instance.BaseModules[0];
     }
 
 
@@ -95,11 +90,45 @@ public class Astronaut : MonoBehaviour
         }
     }
 
+    void setTargetLocation(BaseModule location)
+    {
+        targetLocation = location;
+    }
+
+    void chooseTargetLocation()
+    {
+        if (_stats.Tiredness > tirednessTreashold && currentLocation.ModuleType != ModuleType.ResidentalBay)
+        {
+            if (Base.Instance.BaseModules.Count > 0)
+            {
+                Base.Instance.BaseModules.ForEach(module =>
+                {
+                    if (module.ModuleType == ModuleType.ResidentalBay)
+                        targetLocation = module;
+                });
+            }
+        }
+        else {
+            targetLocation = null;
+        }
+    }
+
+    void moveToTarget() {
+        Debug.Log("MOVING TO " + targetLocation.ModuleType);
+        currentLocation = targetLocation;
+        targetLocation = null;
+    }
+
     void Update() {
         float deltaTime = Time.deltaTime;
         increaseTiredness(tirednessPerSecond * deltaTime);
         increaseHunger(hungerPerSecond * deltaTime);
         increaseThurst(thirstPerSecond * deltaTime);
         calculateHealthDelta(deltaTime);
+        if (Base.Instance.BaseModules.Count > 0) {
+            chooseTargetLocation();
+            if (targetLocation != null)
+                moveToTarget();
+        }
     }
 }
