@@ -7,6 +7,7 @@ public class BaseResourceContainer
 {
     public event Action<BaseResourceContainer> OnMaxCountReached;
     public event Action<BaseResourceContainer> OnResourceDepleted;
+    public event Action<float> OnValueUpdated;
 
     [SerializeField] BaseResourceType _type;
     [SerializeField] float _count;
@@ -37,6 +38,10 @@ public class BaseResourceContainer
                 _count = Capacity;
                 if (OnMaxCountReached != null)
                     OnMaxCountReached(this);
+            }
+            if (OnValueUpdated != null)
+            {
+                OnValueUpdated(_count);
             }
         }
     }

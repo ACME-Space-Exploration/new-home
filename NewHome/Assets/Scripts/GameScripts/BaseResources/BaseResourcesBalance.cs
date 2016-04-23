@@ -12,20 +12,8 @@ public class BaseResourcesBalance
     [SerializeField] ResourceData[] _initialResources;
 
     [SerializeField] List<BaseResourceContainer> _availableResources = null;
-//    private Dictionary<BaseResourceType, BaseResourceContainer> _availableResources = null;// = new Dictionary<BaseResourceType, BaseResourceContainer>();
 
-//    public Dictionary<BaseResourceType, BaseResourceContainer> AvailableResources
-//    {
-//        get
-//        {
-//            if (_availableResources == null)
-//            {
-//                Init();
-//            }
-//
-//            return _availableResources;
-//        }
-//    }
+    public List<BaseResourceContainer> AvailableResources { get { return _availableResources; } }
 
     public void Init()
     {
@@ -34,16 +22,16 @@ public class BaseResourcesBalance
 
     private void InitResources()
     {
-        _availableResources = new List<BaseResourceContainer>();//new Dictionary<BaseResourceType, BaseResourceContainer>();
+        _availableResources = new List<BaseResourceContainer>();
         foreach (var resourceData in _initialResources)
         {
             if(_availableResources.Any(c=>c.ResourceType == resourceData.type))
                 continue;
 
-            var resContainer = new BaseResourceContainer(resourceData.type, resourceData.capacity, resourceData.value);
+            var resContainer = new BaseResourceContainer(resourceData.type, resourceData.value, resourceData.capacity);
             resContainer.OnMaxCountReached += Resource_OnMaxCountReached;
             resContainer.OnResourceDepleted += Resource_OnResourceDepleted;
-            _availableResources.Add(resContainer);//[resourceData.type] = resContainer;
+            _availableResources.Add(resContainer);
         }
     }    
 
