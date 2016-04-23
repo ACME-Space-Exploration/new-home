@@ -5,7 +5,7 @@ using UnityEngine;
 public class HumanStats
 {
     public event Action<HumanStats> OnStatsChanged;
-
+    
     [SerializeField] float _hungry;
     [SerializeField] float _thirsty;
     [SerializeField] float _stress;
