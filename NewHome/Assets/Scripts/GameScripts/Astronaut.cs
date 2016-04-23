@@ -19,7 +19,6 @@ public class Astronaut : MonoBehaviour
     public HumanStats Stats { get { return _stats; } }
 
     void initAstronaut() {
-        Debug.Log("INIT ASTRONAUT");
         System.Random rnd = new System.Random();
         _stats.Hungry = 0f;
         _stats.Thirsty = 0f;
@@ -29,6 +28,7 @@ public class Astronaut : MonoBehaviour
         _stats.Health = 1f;
         _stats.Tiredness = (float) rnd.NextDouble();
         currentLocation = Base.Instance.BaseModules[0];
+        currentLocation.AstronautEnter(this);
     }
 
 
@@ -37,37 +37,37 @@ public class Astronaut : MonoBehaviour
         initAstronaut();
     }
 
-    void increaseTiredness(float tirednessDelta) {
-        _stats.Tiredness += tirednessDelta; 
+    void increaseTiredness(float deltaTime) {
+        _stats.Tiredness += tirednessPerSecond * deltaTime; 
     }
 
-    void increaseHunger(float hungerDelta)
+    void increaseHunger(float deltaTime)
     {
-        _stats.Hungry += hungerDelta;
+        _stats.Hungry += hungerPerSecond * deltaTime;
     }
 
-    void increaseThurst(float thirstDelta)
+    void increaseThurst(float deltaTime)
     {
-        _stats.Thirsty += thirstDelta;
+        _stats.Thirsty += thirstPerSecond * deltaTime;
     }
     void increaseHealth(float healthDelta)
     {
         _stats.Health += healthDelta;
     }
 
-    void decreaseTiredness(float tirednessDelta)
+    public void decreaseTiredness(float deltaTime)
     {
-        _stats.Tiredness -= tirednessDelta;
+        _stats.Tiredness -= tirednessPerSecond * deltaTime;
     }
 
-    void decreaseHunger(float hungerDelta)
+    public void decreaseHunger(float deltaTime)
     {
-        _stats.Hungry -= hungerDelta;
+        _stats.Hungry -= hungerPerSecond * deltaTime;
     }
 
-    void decreaseThurst(float thirstDelta)
+    public void decreaseThurst(float deltaTime)
     {
-        _stats.Thirsty -= thirstDelta;
+        _stats.Thirsty -= thirstPerSecond * deltaTime;
     }
 
     void decreaseHealth(float healthDelta)
@@ -99,12 +99,27 @@ public class Astronaut : MonoBehaviour
     {
         if (_stats.Tiredness > tirednessTreashold && currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
+            Debug.Log("I WANT TO GO TO RESIDENTIAL BAY");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
-                    if (module.ModuleType == ModuleType.ResidentalBay)
+                    if (module.ModuleType == ModuleType.ResidentalBay) {
                         targetLocation = module;
+                        return;
+                    }
+                });
+            }
+        } else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && currentLocation.ModuleType != ModuleType.Canteen) {
+            Debug.Log("I WANT TO GO TO CANTEEN");
+            if (Base.Instance.BaseModules.Count > 0)
+            {
+                Base.Instance.BaseModules.ForEach(module =>
+                {
+                    if (module.ModuleType == ModuleType.Canteen) {
+                        targetLocation = module;
+                        return;
+                    }
                 });
             }
         }
@@ -115,20 +130,29 @@ public class Astronaut : MonoBehaviour
 
     void moveToTarget() {
         Debug.Log("MOVING TO " + targetLocation.ModuleType);
+        currentLocation.AstronautExit(this);
         currentLocation = targetLocation;
+        currentLocation.AstronautEnter(this);
         targetLocation = null;
     }
 
     void Update() {
         float deltaTime = Time.deltaTime;
-        increaseTiredness(tirednessPerSecond * deltaTime);
-        increaseHunger(hungerPerSecond * deltaTime);
-        increaseThurst(thirstPerSecond * deltaTime);
+        if (currentLocation.ModuleType != ModuleType.ResidentalBay)
+        {
+            increaseTiredness(deltaTime);
+        }
+        if (currentLocation.ModuleType != ModuleType.Canteen)
+        {
+            increaseHunger(deltaTime);
+            increaseThurst(deltaTime);
+        }
         calculateHealthDelta(deltaTime);
         if (Base.Instance.BaseModules.Count > 0) {
             chooseTargetLocation();
-            if (targetLocation != null)
+            if (targetLocation != null) {
                 moveToTarget();
+            }
         }
     }
 }

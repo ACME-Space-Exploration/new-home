@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 
-public class ResidentalBayModule : BaseModule
+public class CanteenModule : BaseModule
 {
     [SerializeField] float _productionTime = 5;
     [SerializeField] float _fullRestoreTime = 1.0f;    
     [SerializeField] float _waterConsumption = 0.5f;
+    [SerializeField] float _foodConsumption = 0.5f;
     [SerializeField] float _electricityConsumption = 1;
 
 //    private float _productionCycleProgress;
@@ -12,7 +13,7 @@ public class ResidentalBayModule : BaseModule
 
     public override ModuleType ModuleType
     {
-        get { return ModuleType.ResidentalBay; }
+        get { return ModuleType.Canteen; }
     }
 
     protected override void ProductionUpdate(float deltaTime)
@@ -21,16 +22,18 @@ public class ResidentalBayModule : BaseModule
         {
             return;
         }
-        UpdateAstronautsTiderness(deltaTime);
+        UpdateAstronautsHunger(deltaTime);
+        UpdateAstronautsThirst(deltaTime);
     }
 
     protected override void ApplyResourcesConsumption(BaseResourcesBalance resources, float deltaTime)
     {
         _pauseProduction = !resources.TryUseResource(BaseResourceType.Electricity, _electricityConsumption * deltaTime);
         _pauseProduction = !resources.TryUseResource(BaseResourceType.Water, _waterConsumption * deltaTime);
+        _pauseProduction = !resources.TryUseResource(BaseResourceType.Food, _foodConsumption * deltaTime);
     }
 
-    private void UpdateAstronautsTiderness(float deltaTime)
+    private void UpdateAstronautsHunger(float deltaTime)
     {
         if (_astronauts.Count == 0)
         {
@@ -39,7 +42,20 @@ public class ResidentalBayModule : BaseModule
 
         foreach (var astronaut in _astronauts)
         {
-            astronaut.decreaseTiredness(deltaTime); // -= _productionTime / _fullRestoreTime;
+            astronaut.decreaseHunger(deltaTime);//Stats.Hungry -= _productionTime / _fullRestoreTime;
         }
-    }    
+    }
+
+    private void UpdateAstronautsThirst(float deltaTime)
+    {
+        if (_astronauts.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var astronaut in _astronauts)
+        {
+            astronaut.decreaseThurst(deltaTime);//.Stats.Thirsty -= _productionTime / _fullRestoreTime;
+        }
+    }
 }
