@@ -6,18 +6,22 @@ public class Base : Singleton<Base>
 {
     [SerializeField] BaseResourcesBalance _avaliableResources;
 
-    private readonly List<BaseModule> _baseModules = new List<BaseModule>();
+    [SerializeField] List<BaseModule> _baseModules;
 
     public BaseResourcesBalance AvaliableResources { get { return _avaliableResources; } }
 
     public List<BaseModule> BaseModules
-    {
+    {        
         get { return _baseModules; }
     }
 
-    void Init()
+    void Awake()
     {
-        
+        _avaliableResources.Init();
+        foreach (var module in _baseModules)
+        {
+            module.SwitchOn();
+        }
     }
 
     public void AddModule(BaseModule newModule)

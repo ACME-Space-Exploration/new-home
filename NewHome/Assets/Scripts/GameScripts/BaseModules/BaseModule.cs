@@ -26,15 +26,12 @@ public abstract class BaseModule : MonoBehaviour
         protected set { _health = Mathf.Clamp(value, 0f, 1f); }
     }
 
-    public float ProductionProgress { get; protected set; }
-
     public bool SwitchedOn { get; private set; }
 
     public abstract ModuleType ModuleType { get; }
 
     void OnEnable()
     {
-        ProductionProgress = 0;
         _baseResources = Base.Instance.AvaliableResources;
     }
 
@@ -49,12 +46,12 @@ public abstract class BaseModule : MonoBehaviour
         while (true)
         {
             ApplyResourcesConsumption(_baseResources, Time.deltaTime);
-            ProductionProgress = ProductionUpdate(Time.deltaTime);
+            ProductionUpdate(Time.deltaTime);
             yield return null;
         }
     }
 
-    protected abstract float ProductionUpdate(float deltaTime);
+    protected abstract void ProductionUpdate(float deltaTime);
     protected abstract void ApplyResourcesConsumption(BaseResourcesBalance resources, float deltaTime);
 
     public virtual void SwitchOn()

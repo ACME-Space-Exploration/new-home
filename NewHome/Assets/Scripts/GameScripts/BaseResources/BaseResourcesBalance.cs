@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
@@ -8,22 +9,23 @@ public class BaseResourcesBalance
     public event Action<BaseResourceContainer> OnResourceMaxCountReached;
     public event Action<BaseResourceContainer> OnResourceDepleted;
 
-    [SerializeField] ResourceInitialData[] _initialResources;
+    [SerializeField] ResourceData[] _initialResources;
 
-    private Dictionary<BaseResourceType, BaseResourceContainer> _availableResources = null;// = new Dictionary<BaseResourceType, BaseResourceContainer>();
+    [SerializeField] List<BaseResourceContainer> _availableResources = null;
+//    private Dictionary<BaseResourceType, BaseResourceContainer> _availableResources = null;// = new Dictionary<BaseResourceType, BaseResourceContainer>();
 
-    public Dictionary<BaseResourceType, BaseResourceContainer> AvailableResources
-    {
-        get
-        {
-            if (_availableResources == null)
-            {
-                Init();
-            }
-
-            return _availableResources;
-        }
-    }
+//    public Dictionary<BaseResourceType, BaseResourceContainer> AvailableResources
+//    {
+//        get
+//        {
+//            if (_availableResources == null)
+//            {
+//                Init();
+//            }
+//
+//            return _availableResources;
+//        }
+//    }
 
     public void Init()
     {
@@ -32,26 +34,40 @@ public class BaseResourcesBalance
 
     private void InitResources()
     {
-        _availableResources = new Dictionary<BaseResourceType, BaseResourceContainer>();
+        _availableResources = new List<BaseResourceContainer>();//new Dictionary<BaseResourceType, BaseResourceContainer>();
         foreach (var resourceData in _initialResources)
         {
+            if(_availableResources.Any(c=>c.ResourceType == resourceData.type))
+                continue;
+
             var resContainer = new BaseResourceContainer(resourceData.type, resourceData.capacity, resourceData.value);
             resContainer.OnMaxCountReached += Resource_OnMaxCountReached;
             resContainer.OnResourceDepleted += Resource_OnResourceDepleted;
-            _availableResources[resourceData.type] = resContainer;
+            _availableResources.Add(resContainer);//[resourceData.type] = resContainer;
         }
     }    
 
     public void AddResource(BaseResourceType type, float value)
     {
-        _availableResources[type].Count += value;
+        var resourceContainer = _availableResources.FirstOrDefault(r => r.ResourceType == type);
+        if(resourceContainer != null)
+            resourceContainer.Count += value;
+        else
+            Debug.LogError("Resource type not found: " + type.ToString());               
     }
 
     public bool TryUseResource(BaseResourceType type, float count)
     {
-        if (_availableResources.ContainsKey(type) && _availableResources[type].Count >= count)
+        var resourceContainer = _availableResources.FirstOrDefault(r => r.ResourceType == type);
+        if (resourceContainer == null)
         {
-            _availableResources[type].Count -= count;
+            Debug.LogError("Resource type not found: " + type.ToString());
+            return false;
+        }
+
+        if (resourceContainer.Count >= count)
+        {
+            resourceContainer.Count -= count;
             return true;
         }
 
@@ -75,7 +91,7 @@ public class BaseResourcesBalance
     }
 
     [Serializable]
-    private class ResourceInitialData
+    private class ResourceData
     {
         public BaseResourceType type;
         public float value;

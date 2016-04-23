@@ -8,9 +8,10 @@ public class BaseResourceContainer
     public event Action<BaseResourceContainer> OnMaxCountReached;
     public event Action<BaseResourceContainer> OnResourceDepleted;
 
-    private float _count;
+    [SerializeField] BaseResourceType _type;
+    [SerializeField] float _count;
 
-    public BaseResourceType ResourceType { get; private set; }
+    public BaseResourceType ResourceType { get { return _type; } }
     public float Capacity { get; set; }
     public float Count
     {
@@ -42,7 +43,7 @@ public class BaseResourceContainer
 
     public BaseResourceContainer(BaseResourceType type, float initialCount, float maxCount)
     {
-        ResourceType = type;
+        _type = type;
         Capacity = maxCount;
         Count = initialCount;
     }
