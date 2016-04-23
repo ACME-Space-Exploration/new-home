@@ -8,11 +8,11 @@ public class BaseResourceContainer
     public event Action<BaseResourceContainer> OnMaxCountReached;
     public event Action<BaseResourceContainer> OnResourceDepleted;
 
-    private int _count;
+    private float _count;
 
     public BaseResourceType ResourceType { get; private set; }
-    public int Capacity { get; set; }
-    public int Count
+    public float Capacity { get; set; }
+    public float Count
     {
         get { return _count; }
         set
@@ -40,7 +40,7 @@ public class BaseResourceContainer
         }
     }
 
-    public BaseResourceContainer(BaseResourceType type, int initialCount, int maxCount)
+    public BaseResourceContainer(BaseResourceType type, float initialCount, float maxCount)
     {
         ResourceType = type;
         Capacity = maxCount;

@@ -8,10 +8,15 @@ public abstract class BaseModule : MonoBehaviour
     public event Action<BaseModule> OnBroken;
     public event Action<BaseModule> OnRepaired;
 
+    public event Action OnSwitchedOn;
+    public event Action OnSwitchedOff;
+
     [SerializeField, Range(0f, 1f)]
     protected float _health = 1f;
     [SerializeField]
-    protected List<Astronaut> _astronauts = new List<Astronaut>();
+    protected List<Astronaut> _astronauts = new List<Astronaut>();    
+
+    protected BaseResourcesBalance _baseResources;
 
     private Coroutine _productionUpdateCoroutine = null;
 
@@ -29,6 +34,8 @@ public abstract class BaseModule : MonoBehaviour
 
     void OnEnable()
     {
+        ProductionProgress = 0;
+        _baseResources = Base.Instance.AvaliableResources;
     }
 
     void OnDisable()
@@ -41,23 +48,33 @@ public abstract class BaseModule : MonoBehaviour
     {
         while (true)
         {
+            ApplyResourcesConsumption(_baseResources, Time.deltaTime);
             ProductionProgress = ProductionUpdate(Time.deltaTime);
             yield return null;
         }
     }
 
     protected abstract float ProductionUpdate(float deltaTime);
+    protected abstract void ApplyResourcesConsumption(BaseResourcesBalance resources, float deltaTime);
 
     public virtual void SwitchOn()
     {
         _productionUpdateCoroutine = StartCoroutine(ProductionUpdateCoroutine());
         SwitchedOn = true;
+        if (OnSwitchedOn != null)
+        {
+            OnSwitchedOn();
+        }
     }
 
     public virtual void SwitchOff()
     {
         StopCoroutine(_productionUpdateCoroutine);
         SwitchedOn = false;
+        if (OnSwitchedOff != null)
+        {
+            OnSwitchedOff();
+        }
     }
 
     public virtual void AstronautEnter(Astronaut astronaut)

@@ -42,12 +42,12 @@ public class BaseResourcesBalance
         }
     }    
 
-    public void AddResource(BaseResourceType type, int value)
+    public void AddResource(BaseResourceType type, float value)
     {
         _availableResources[type].Count += value;
     }
 
-    public bool TryUseResource(BaseResourceType type, int count)
+    public bool TryUseResource(BaseResourceType type, float count)
     {
         if (_availableResources.ContainsKey(type) && _availableResources[type].Count >= count)
         {
@@ -78,7 +78,7 @@ public class BaseResourcesBalance
     private class ResourceInitialData
     {
         public BaseResourceType type;
-        public int value;
-        public int capacity;
+        public float value;
+        public float capacity;
     }
 }
