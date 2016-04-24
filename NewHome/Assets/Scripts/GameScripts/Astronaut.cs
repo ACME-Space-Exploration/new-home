@@ -7,23 +7,24 @@ public class Astronaut : MonoBehaviour
     [SerializeField] float _carbonProduction = 0.05f;
     [SerializeField] float hungerPerSecond = 0.02f;
     [SerializeField] float thirstPerSecond = 0.03f;
-    [SerializeField] float thirstGymPerSecond = 0.04f;
+    [SerializeField] float thirstGymPerSecond = 0.045f;
+    [SerializeField] float thirstCanteenPerSecond = 0.065f;
     [SerializeField] float tirednessPerSecond = 0.01f;
-    [SerializeField] float tirednessResidentalBayPerSecond = 0.04f;
+    [SerializeField] float tirednessResidentalBayPerSecond = 0.05f;
     [SerializeField] float tirednessGymPerSecond = 0.02f;
     [SerializeField] float oxygenHealthPerSecond = 0.1f;
     [SerializeField] float gymHealthPerSecond = 0.005f;
     [SerializeField] float hungerHealthPerSecond = 0.01f;
     [SerializeField] float thirstHealthPerSecond = 0.005f;
     [SerializeField] float tirednessHealthPerSecond = 0.001f;
-    [SerializeField] float hungerTreashold = 0.7f;
-    [SerializeField] float thirstTreashold = 0.6f;
+    [SerializeField] float hungerTreashold = 0.8f;
+    [SerializeField] float thirstTreashold = 0.7f;
     [SerializeField] float tirednessTreashold = 0.8f;
     [SerializeField] float hungerCriticalTreashold = 0.95f;
     [SerializeField] float thirstCriticalTreashold = 0.85f;
     [SerializeField] float tirednessCriticalTreashold = 0.99f;
     [SerializeField] float hungerNormalTreashold = 0.4f;
-    [SerializeField] float thirstNormalTreashold = 0.2f;
+    [SerializeField] float thirstNormalTreashold = 0.3f;
     [SerializeField] float tirednessNormalTreashold = 0.5f;
 
     [SerializeField] BaseModule currentLocation;
@@ -106,7 +107,14 @@ public class Astronaut : MonoBehaviour
 
     public void decreaseThurst(float deltaTime)
     {
-        _stats.Thirsty -= thirstPerSecond * deltaTime;
+        if (currentLocation.ModuleType == ModuleType.Canteen)
+        {
+            _stats.Thirsty -= thirstCanteenPerSecond * deltaTime;
+        }
+        else
+        {
+            _stats.Thirsty -= thirstPerSecond * deltaTime;
+        }
     }
 
     void decreaseHealth(float healthDelta)
@@ -174,6 +182,23 @@ public class Astronaut : MonoBehaviour
                 Base.Instance.BaseModules.ForEach(module =>
                 {
                     if (module.ModuleType == ModuleType.Gym)
+                    {
+                        targetLocation = module;
+                        return;
+                    }
+                });
+            }
+        }
+        else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
+            _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
+            && currentLocation.ModuleType != ModuleType.Greenhouse)
+        {
+            Debug.Log("I WANT TO GO TO GREENHOUSE");
+            if (Base.Instance.BaseModules.Count > 0)
+            {
+                Base.Instance.BaseModules.ForEach(module =>
+                {
+                    if (module.ModuleType == ModuleType.Greenhouse)
                     {
                         targetLocation = module;
                         return;
