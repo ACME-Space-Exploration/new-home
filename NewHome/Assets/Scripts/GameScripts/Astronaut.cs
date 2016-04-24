@@ -8,7 +8,8 @@ public class Astronaut : MonoBehaviour
     [SerializeField] float hungerPerSecond = 0.02f;
     [SerializeField] float thirstPerSecond = 0.03f;
     [SerializeField] float thirstGymPerSecond = 0.045f;
-    [SerializeField] float thirstCanteenPerSecond = 0.065f;
+    [SerializeField] float thirstCanteenPerSecond = 0.25f;
+    [SerializeField] float hungerCanteenPerSecond = 0.1f;
     [SerializeField] float tirednessPerSecond = 0.01f;
     [SerializeField] float tirednessResidentalBayPerSecond = 0.05f;
     [SerializeField] float tirednessGymPerSecond = 0.02f;
@@ -26,6 +27,7 @@ public class Astronaut : MonoBehaviour
     [SerializeField] float hungerNormalTreashold = 0.4f;
     [SerializeField] float thirstNormalTreashold = 0.3f;
     [SerializeField] float tirednessNormalTreashold = 0.5f;
+    [SerializeField] float tirednessMinimalTreashold = 0.1f;
 
     [SerializeField] BaseModule currentLocation;
 
@@ -102,7 +104,14 @@ public class Astronaut : MonoBehaviour
 
     public void decreaseHunger(float deltaTime)
     {
-        _stats.Hungry -= hungerPerSecond * deltaTime;
+        if (currentLocation.ModuleType == ModuleType.Canteen)
+        {
+            _stats.Hungry -= hungerCanteenPerSecond * deltaTime;
+        }
+        else
+        {
+            _stats.Hungry -= hungerPerSecond * deltaTime;
+        }
     }
 
     public void decreaseThurst(float deltaTime)
@@ -158,7 +167,7 @@ public class Astronaut : MonoBehaviour
                 });
             }
         }
-        else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && currentLocation.ModuleType != ModuleType.Canteen)
+        else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness > tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
         {
             Debug.Log("I WANT TO GO TO CANTEEN");
             if (Base.Instance.BaseModules.Count > 0)
@@ -174,6 +183,7 @@ public class Astronaut : MonoBehaviour
         }
         else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
+            && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Gym)
         {
             Debug.Log("I WANT TO GO TO GYM");
@@ -191,6 +201,7 @@ public class Astronaut : MonoBehaviour
         }
         else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
+            && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Greenhouse)
         {
             Debug.Log("I WANT TO GO TO GREENHOUSE");
