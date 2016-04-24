@@ -37,8 +37,8 @@ public class Astronaut : MonoBehaviour
 
     [SerializeField] float _movementTime = 3f;
     [SerializeField] Vector3 _maxScale = new Vector3(1.2f,1.2f,1.2f);
-    [SerializeField] AnimationCurve _movementCurve = AnimationCurve.Linear(0, 0, 1, 1);
-    [SerializeField] AnimationCurve _scaleCurve = AnimationCurve.Linear(0, 0, 1, 1);
+    [SerializeField] AnimationCurve _movementCurve = AnimationCurve.Linear(0, 0, 1, 0);
+    [SerializeField] AnimationCurve _scaleCurve = AnimationCurve.Linear(0, 0, 1, 0);
     private Coroutine _movingCoroutine;
     private Coroutine _idleCoroutine;
     private bool _isMoving;
@@ -164,6 +164,7 @@ public class Astronaut : MonoBehaviour
 
     void chooseTargetLocation()
     {
+        var targetFound = false;
         if (_stats.Tiredness > tirednessTreashold && currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
             if (Base.Instance.BaseModules.Count > 0)
@@ -172,12 +173,12 @@ public class Astronaut : MonoBehaviour
                 {
                     if (module.ModuleType == ModuleType.ResidentalBay && module.HasFreeWorkingPlace) {
                         targetLocation = module;
-                        return;
+                        targetFound = true;
                     }
                 });
             }
         }
-        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness > tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
+        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness < tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
         {
             if (Base.Instance.BaseModules.Count > 0)
             {
@@ -185,14 +186,14 @@ public class Astronaut : MonoBehaviour
                 {
                     if (module.ModuleType == ModuleType.Canteen && module.HasFreeWorkingPlace) {
                         targetLocation = module;
-                        return;
+                        targetFound = true;
                     }
                 });
             }
         }
         if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
-            && _stats.Tiredness > tirednessMinimalTreashold
+            && _stats.Tiredness < tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Gym)
         {
             if (Base.Instance.BaseModules.Count > 0)
@@ -202,14 +203,14 @@ public class Astronaut : MonoBehaviour
                     if (module.ModuleType == ModuleType.Gym && module.HasFreeWorkingPlace)
                     {
                         targetLocation = module;
-                        return;
+                        targetFound = true;
                     }
                 });
             }
         }
         if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
-            && _stats.Tiredness > tirednessMinimalTreashold
+            && _stats.Tiredness < tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Greenhouse)
         {
             if (Base.Instance.BaseModules.Count > 0)
@@ -219,13 +220,14 @@ public class Astronaut : MonoBehaviour
                     if (module.ModuleType == ModuleType.Greenhouse && module.HasFreeWorkingPlace)
                     {
                         targetLocation = module;
-                        return;
+                        targetFound = true;
                     }
                 });
             }
         }
 
-        targetLocation = null;
+        if(!targetFound)
+            targetLocation = null;
     }
 
     void moveToTarget()
@@ -288,7 +290,7 @@ public class Astronaut : MonoBehaviour
         while (t < 1)
         {
             transform.position = Vector3.Lerp(startPosition, target.position, _movementCurve.Evaluate(t));
-            transform.localScale = Vector3.Lerp(startScale, _maxScale, t);
+            //transform.localScale = Vector3.Lerp(startScale, _maxScale, t);
             t = Mathf.Clamp(t + (Time.deltaTime / _movementTime), 0, 1f);
             yield return null;
         }
