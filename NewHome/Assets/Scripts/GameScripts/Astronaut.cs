@@ -14,7 +14,7 @@ public class Astronaut : MonoBehaviour
     [SerializeField] float hungerCanteenPerSecond = 0.1f;
     [SerializeField] float tirednessPerSecond = 0.01f;
     [SerializeField] float tirednessResidentalBayPerSecond = 0.05f;
-    [SerializeField] float tirednessGymPerSecond = 0.02f;
+    [SerializeField] float tirednessGymPerSecond = 0.035f;
     [SerializeField] float oxygenHealthPerSecond = 0.1f;
     [SerializeField] float gymHealthPerSecond = 0.005f;
     [SerializeField] float hungerHealthPerSecond = 0.01f;
@@ -48,20 +48,26 @@ public class Astronaut : MonoBehaviour
     void initAstronaut()
     {
         System.Random rnd = new System.Random();
-        _stats.Hungry = 0.2f;
-        _stats.Thirsty = 0.4f;
         _stats.Stress = (float) rnd.NextDouble();
         _stats.Agility = (float) rnd.NextDouble();
         _stats.Strength = (float) rnd.NextDouble();
         _stats.Health = 1f;
-        _stats.Tiredness = 0.8f;
-        currentLocation = Base.Instance.BaseModules[0];
-        currentLocation.AstronautEnter(this);
+        foreach (BaseModule module in Base.Instance.BaseModules) {
+            if (module.HasFreeWorkingPlace)
+            {
+                currentLocation = module;
+                var workingPlaces = currentLocation.GetComponent<ModuleWorkingPlaces>();
+                transform.position = workingPlaces.ReserveWorkingPlace(this).position;
+                currentLocation.AstronautEnter(this);
+                break;
+            }
+        }
     }
 
 
     void Start()
     {
+        Debug.Log("INIT ASTRONAUT");
         initAstronaut();
     }
 
