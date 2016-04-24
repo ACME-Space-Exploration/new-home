@@ -178,7 +178,7 @@ public class Astronaut : MonoBehaviour
                 });
             }
         }
-        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness < tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
+        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) &&  currentLocation.ModuleType != ModuleType.Canteen)
         {
             if (Base.Instance.BaseModules.Count > 0)
             {
@@ -193,7 +193,6 @@ public class Astronaut : MonoBehaviour
         }
         if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
-            && _stats.Tiredness < tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Gym)
         {
             if (Base.Instance.BaseModules.Count > 0)
@@ -210,7 +209,6 @@ public class Astronaut : MonoBehaviour
         }
         if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
-            && _stats.Tiredness < tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Greenhouse)
         {
             if (Base.Instance.BaseModules.Count > 0)
@@ -294,6 +292,8 @@ public class Astronaut : MonoBehaviour
             t = Mathf.Clamp(t + (Time.deltaTime / _movementTime), 0, 1f);
             yield return null;
         }
+
+        _isMoving = false;
 
         if (callback != null)
         {
