@@ -43,7 +43,7 @@ public class Astronaut : MonoBehaviour
         _stats.Agility = (float) rnd.NextDouble();
         _stats.Strength = (float) rnd.NextDouble();
         _stats.Health = 1f;
-        _stats.Tiredness = (float) rnd.NextDouble();
+        _stats.Tiredness = 0.8f;
         currentLocation = Base.Instance.BaseModules[0];
         currentLocation.AstronautEnter(this);
     }
@@ -155,7 +155,6 @@ public class Astronaut : MonoBehaviour
     {
         if (_stats.Tiredness > tirednessTreashold && currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
-            Debug.Log("I WANT TO GO TO RESIDENTIAL BAY");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
@@ -169,7 +168,6 @@ public class Astronaut : MonoBehaviour
         }
         else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness > tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
         {
-            Debug.Log("I WANT TO GO TO CANTEEN");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
@@ -186,7 +184,6 @@ public class Astronaut : MonoBehaviour
             && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Gym)
         {
-            Debug.Log("I WANT TO GO TO GYM");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
@@ -204,7 +201,6 @@ public class Astronaut : MonoBehaviour
             && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Greenhouse)
         {
-            Debug.Log("I WANT TO GO TO GREENHOUSE");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
