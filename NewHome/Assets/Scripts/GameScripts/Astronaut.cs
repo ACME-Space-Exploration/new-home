@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class Astronaut : MonoBehaviour
@@ -40,6 +41,7 @@ public class Astronaut : MonoBehaviour
     [SerializeField] AnimationCurve _scaleCurve = AnimationCurve.Linear(0, 0, 1, 1);
     private Coroutine _movingCoroutine;
     private Coroutine _idleCoroutine;
+    private bool _isMoving;
 
     public HumanStats Stats { get { return _stats; } }
 
@@ -168,27 +170,27 @@ public class Astronaut : MonoBehaviour
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
-                    if (module.ModuleType == ModuleType.ResidentalBay) {
+                    if (module.ModuleType == ModuleType.ResidentalBay && module.HasFreeWorkingPlace) {
                         targetLocation = module;
                         return;
                     }
                 });
             }
         }
-        else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness > tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
+        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && _stats.Tiredness > tirednessMinimalTreashold &&  currentLocation.ModuleType != ModuleType.Canteen)
         {
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
-                    if (module.ModuleType == ModuleType.Canteen) {
+                    if (module.ModuleType == ModuleType.Canteen && module.HasFreeWorkingPlace) {
                         targetLocation = module;
                         return;
                     }
                 });
             }
         }
-        else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
+        if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
             && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Gym)
@@ -197,7 +199,7 @@ public class Astronaut : MonoBehaviour
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
-                    if (module.ModuleType == ModuleType.Gym)
+                    if (module.ModuleType == ModuleType.Gym && module.HasFreeWorkingPlace)
                     {
                         targetLocation = module;
                         return;
@@ -205,7 +207,7 @@ public class Astronaut : MonoBehaviour
                 });
             }
         }
-        else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
+        if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
             _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
             && _stats.Tiredness > tirednessMinimalTreashold
             && currentLocation.ModuleType != ModuleType.Greenhouse)
@@ -214,7 +216,7 @@ public class Astronaut : MonoBehaviour
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
-                    if (module.ModuleType == ModuleType.Greenhouse)
+                    if (module.ModuleType == ModuleType.Greenhouse && module.HasFreeWorkingPlace)
                     {
                         targetLocation = module;
                         return;
@@ -222,18 +224,26 @@ public class Astronaut : MonoBehaviour
                 });
             }
         }
-        else {
-            targetLocation = null;
-        }
+
+        targetLocation = null;
     }
 
     void moveToTarget()
     {
         Debug.Log("MOVING TO " + targetLocation.ModuleType);
+        var movingLocation = targetLocation;
+        currentLocation.GetComponent<ModuleWorkingPlaces>().ReleaseWorkingPlace(this);
+        var wokingPlace = targetLocation.GetComponent<ModuleWorkingPlaces>();
+        var targetPlace = wokingPlace.ReserveWorkingPlace(this);
+
         currentLocation.AstronautExit(this);
-        currentLocation = targetLocation;
-        currentLocation.AstronautEnter(this);
-        targetLocation = null;
+
+        _movingCoroutine = StartCoroutine(MoveToModuleCoroutine(targetPlace, () =>
+        {
+            currentLocation = movingLocation;
+            currentLocation.AstronautEnter(this);
+            targetLocation = null;
+        }));
     }
 
     void Update()
@@ -246,7 +256,11 @@ public class Astronaut : MonoBehaviour
             decreaseHealth(oxygenHealthPerSecond * deltaTime);
         }
 
-        if(currentLocation != null)
+        if (_isMoving)
+        {
+            return;            
+        }
+
         if (currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
             increaseTiredness(deltaTime);
@@ -259,14 +273,15 @@ public class Astronaut : MonoBehaviour
         calculateHealthDelta(deltaTime);
         if (Base.Instance.BaseModules.Count > 0) {
             chooseTargetLocation();
-            if (targetLocation != null) {
+            if (targetLocation != null && !_isMoving) {
                 moveToTarget();
             }
         }
     }
 
-    private IEnumerator MoveToModuleCoroutine(Transform target)
+    private IEnumerator MoveToModuleCoroutine(Transform target, Action callback)
     {
+        _isMoving = true;
         var t = 0f;
         var startPosition = transform.position;
         var startScale = transform.localScale;
@@ -276,6 +291,11 @@ public class Astronaut : MonoBehaviour
             transform.localScale = Vector3.Lerp(startScale, _maxScale, t);
             t = Mathf.Clamp(t + (Time.deltaTime / _movementTime), 0, 1f);
             yield return null;
+        }
+
+        if (callback != null)
+        {
+            callback();
         }
     }
 }

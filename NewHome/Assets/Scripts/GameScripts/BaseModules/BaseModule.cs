@@ -17,6 +17,7 @@ public abstract class BaseModule : MonoBehaviour
     protected List<Astronaut> _astronauts = new List<Astronaut>();    
 
     private Coroutine _productionUpdateCoroutine = null;
+    private ModuleWorkingPlaces _workingPlaces;
 
     public float Health
     {
@@ -24,9 +25,27 @@ public abstract class BaseModule : MonoBehaviour
         protected set { _health = Mathf.Clamp(value, 0f, 1f); }
     }
 
+    public bool HasFreeWorkingPlace
+    {
+        get
+        {
+            if (_workingPlaces == null)
+            {
+                Debug.LogError("ModuleWorkingPlaces component is null");
+                return false;
+            }
+            return _workingPlaces.HasFreeWorkingPlace;
+        }
+    }
+
     public bool SwitchedOn { get; private set; }
 
     public abstract ModuleType ModuleType { get; }
+
+    void Awake()
+    {
+        _workingPlaces = GetComponent<ModuleWorkingPlaces>();
+    }
 
     void OnDisable()
     {
