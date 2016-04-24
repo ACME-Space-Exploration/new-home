@@ -1,10 +1,19 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using AI.Fuzzy.Library;
+using System.Collections.Generic;
 
 public class Astronaut : MonoBehaviour
 {
     [SerializeField] HumanStats _stats;
+
+    private SugenoFuzzySystem _fsAstronaut = null;
+    private FuzzyVariable fvHunger;
+    private FuzzyVariable fvThirst;
+    private FuzzyVariable fvTiredness;
+
+
     [SerializeField] float _oxygenConsumption = 0.1f;
     [SerializeField] float _carbonProduction = 0.05f;
     [SerializeField] float hungerPerSecond = 0.02f;
@@ -47,6 +56,43 @@ public class Astronaut : MonoBehaviour
 
     void initAstronaut()
     {
+        _fsAstronaut = new SugenoFuzzySystem();
+
+        fvHunger = new FuzzyVariable("Hunger", 0.0, 1.0);
+        fvHunger.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.1 , 0.2)));
+        fvHunger.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.7)));
+        fvHunger.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.8, 0.9, 1.0)));
+        _fsAstronaut.Input.Add(fvHunger);
+
+        fvThirst = new FuzzyVariable("Thirst", 0.0, 1.0);
+        fvThirst.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.1, 0.2)));
+        fvThirst.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.6)));
+        fvThirst.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.6, 0.7, 0.9)));
+        _fsAstronaut.Input.Add(fvThirst);
+
+        fvTiredness = new FuzzyVariable("Tiredness", 0.0, 1.0);
+        fvTiredness.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.1, 0.2)));
+        fvTiredness.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.7)));
+        fvTiredness.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.7, 0.8, 0.9)));
+        _fsAstronaut.Input.Add(fvTiredness);
+
+        SugenoVariable svTarget = new SugenoVariable("Target");
+        svTarget.Functions.Add(_fsAstronaut.CreateSugenoFunction("canteen", new double[] { 0.0, 0.2, 0.25}));
+        svTarget.Functions.Add(_fsAstronaut.CreateSugenoFunction("residential", new double[] { 0.25, 0.4, 0.5 }));
+        svTarget.Functions.Add(_fsAstronaut.CreateSugenoFunction("gym", new double[] { 0.5, 0.6, 0.75 }));
+        svTarget.Functions.Add(_fsAstronaut.CreateSugenoFunction("greenhouse", new double[] { 0.75, 0.9, 1.0 }));
+        _fsAstronaut.Output.Add(svTarget);
+
+        SugenoFuzzyRule rule1 = _fsAstronaut.ParseRule("if (Hunger is high) or (Thirst is high) then (Target is canteen)");
+        SugenoFuzzyRule rule2 = _fsAstronaut.ParseRule("if (Tiredness is high) then (Target is residential)");
+        SugenoFuzzyRule rule3 = _fsAstronaut.ParseRule("if (Hunger is low) and (Thirst is low) and (Tiredness is low) then (Target is gym)");
+        SugenoFuzzyRule rule4 = _fsAstronaut.ParseRule("if (Hunger is normal) and (Thirst is normal) and (Tiredness is normal) then (Target is greenhouse)");
+        
+        _fsAstronaut.Rules.Add(rule1);
+        _fsAstronaut.Rules.Add(rule2);
+        _fsAstronaut.Rules.Add(rule3);
+        _fsAstronaut.Rules.Add(rule4);
+
         System.Random rnd = new System.Random();
         _stats.Stress = (float) rnd.NextDouble();
         _stats.Agility = (float) rnd.NextDouble();
@@ -72,30 +118,35 @@ public class Astronaut : MonoBehaviour
     }
 
     public void increaseTiredness(float deltaTime) {
-        if (currentLocation.ModuleType == ModuleType.Gym)
-        {
-            _stats.Tiredness += tirednessGymPerSecond * deltaTime;
-        }
-        else
-        {
-            _stats.Tiredness += tirednessPerSecond * deltaTime;
+        if (_stats.Tiredness < 1.0f) {
+            if (currentLocation.ModuleType == ModuleType.Gym)
+            {
+                _stats.Tiredness += tirednessGymPerSecond * deltaTime;
+            }
+            else
+            {
+                _stats.Tiredness += tirednessPerSecond * deltaTime;
+            }
         }
     }
 
     public void increaseHunger(float deltaTime)
     {
-        _stats.Hungry += hungerPerSecond * deltaTime;
+        if (_stats.Hungry < 1.0f)
+            _stats.Hungry += hungerPerSecond * deltaTime;
     }
 
     public void increaseThirst(float deltaTime)
     {
-        if (currentLocation.ModuleType == ModuleType.Gym)
-        {
-            _stats.Thirsty += thirstGymPerSecond * deltaTime;
-        }
-        else
-        {
-            _stats.Thirsty += thirstPerSecond * deltaTime;
+        if (_stats.Thirsty < 1.0f) {
+            if (currentLocation.ModuleType == ModuleType.Gym)
+            {
+                _stats.Thirsty += thirstGymPerSecond * deltaTime;
+            }
+            else
+            {
+                _stats.Thirsty += thirstPerSecond * deltaTime;
+            }
         }
     }
     public void increaseHealth(float deltaTime)
@@ -108,38 +159,44 @@ public class Astronaut : MonoBehaviour
 
     public void decreaseTiredness(float deltaTime)
     {
-        if (currentLocation.ModuleType == ModuleType.ResidentalBay)
+        if (_stats.Tiredness > 0.0f)
         {
-            _stats.Tiredness -= tirednessResidentalBayPerSecond * deltaTime;
+            if (currentLocation.ModuleType == ModuleType.ResidentalBay)
+            {
+                _stats.Tiredness -= tirednessResidentalBayPerSecond * deltaTime;
+            }
+            else
+            {
+                _stats.Tiredness -= tirednessPerSecond * deltaTime;
+            }
         }
-        else
-        {
-            _stats.Tiredness -= tirednessPerSecond * deltaTime;
-        }
-        
     }
 
     public void decreaseHunger(float deltaTime)
     {
-        if (currentLocation.ModuleType == ModuleType.Canteen)
-        {
-            _stats.Hungry -= hungerCanteenPerSecond * deltaTime;
-        }
-        else
-        {
-            _stats.Hungry -= hungerPerSecond * deltaTime;
+        if (_stats.Hungry > 0.0f) {
+            if (currentLocation.ModuleType == ModuleType.Canteen)
+            {
+                _stats.Hungry -= hungerCanteenPerSecond * deltaTime;
+            }
+            else
+            {
+                _stats.Hungry -= hungerPerSecond * deltaTime;
+            }
         }
     }
 
     public void decreaseThurst(float deltaTime)
     {
-        if (currentLocation.ModuleType == ModuleType.Canteen)
-        {
-            _stats.Thirsty -= thirstCanteenPerSecond * deltaTime;
-        }
-        else
-        {
-            _stats.Thirsty -= thirstPerSecond * deltaTime;
+        if (_stats.Thirsty > 0.0f) {
+            if (currentLocation.ModuleType == ModuleType.Canteen)
+            {
+                _stats.Thirsty -= thirstCanteenPerSecond * deltaTime;
+            }
+            else
+            {
+                _stats.Thirsty -= thirstPerSecond * deltaTime;
+            }
         }
     }
 
@@ -173,70 +230,49 @@ public class Astronaut : MonoBehaviour
         targetLocation = location;
     }
 
+    BaseModule getModuleIfNotOccupied(ModuleType moduleType) {
+        if (Base.Instance.BaseModules.Count > 0)
+        {
+            foreach (BaseModule module in Base.Instance.BaseModules)
+            {
+                if (module.ModuleType == moduleType && module.HasFreeWorkingPlace)
+                {
+                    return module;
+                }
+            }
+        }
+        return null;
+    }
+
     void chooseTargetLocation()
     {
-        var targetFound = false;
-        if (_stats.Tiredness > tirednessTreashold && currentLocation.ModuleType != ModuleType.ResidentalBay)
-        {
-            if (Base.Instance.BaseModules.Count > 0)
-            {
-                Base.Instance.BaseModules.ForEach(module =>
-                {
-                    if (module.ModuleType == ModuleType.ResidentalBay && module.HasFreeWorkingPlace) {
-                        targetLocation = module;
-                        targetFound = true;
-                    }
-                });
-            }
-        }
-        if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) &&  currentLocation.ModuleType != ModuleType.Canteen)
-        {
-            if (Base.Instance.BaseModules.Count > 0)
-            {
-                Base.Instance.BaseModules.ForEach(module =>
-                {
-                    if (module.ModuleType == ModuleType.Canteen && module.HasFreeWorkingPlace) {
-                        targetLocation = module;
-                        targetFound = true;
-                    }
-                });
-            }
-        }
-        if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
-            _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
-            && currentLocation.ModuleType != ModuleType.Gym)
-        {
-            if (Base.Instance.BaseModules.Count > 0)
-            {
-                Base.Instance.BaseModules.ForEach(module =>
-                {
-                    if (module.ModuleType == ModuleType.Gym && module.HasFreeWorkingPlace)
-                    {
-                        targetLocation = module;
-                        targetFound = true;
-                    }
-                });
-            }
-        }
-        if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
-            _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness > tirednessNormalTreashold)
-            && currentLocation.ModuleType != ModuleType.Greenhouse)
-        {
-            if (Base.Instance.BaseModules.Count > 0)
-            {
-                Base.Instance.BaseModules.ForEach(module =>
-                {
-                    if (module.ModuleType == ModuleType.Greenhouse && module.HasFreeWorkingPlace)
-                    {
-                        targetLocation = module;
-                        targetFound = true;
-                    }
-                });
-            }
-        }
+        FuzzyVariable fvHunger = _fsAstronaut.InputByName("Hunger");
+        FuzzyVariable fvThirst = _fsAstronaut.InputByName("Thirst");
+        FuzzyVariable fvTiredness = _fsAstronaut.InputByName("Tiredness");
+        SugenoVariable svTarget = _fsAstronaut.OutputByName("Target");
 
-        if(!targetFound)
-            targetLocation = null;
+        Dictionary<FuzzyVariable, double> inputValues = new Dictionary<FuzzyVariable, double>();
+        inputValues.Add(fvHunger, _stats.Hungry);
+        inputValues.Add(fvThirst, _stats.Thirsty);
+        inputValues.Add(fvTiredness, _stats.Tiredness);
+
+        Dictionary<SugenoVariable, double> result = _fsAstronaut.Calculate(inputValues);
+        if (targetLocation == null && result[svTarget] > 0 && result[svTarget] <= 0.25)
+        {
+            targetLocation = getModuleIfNotOccupied(ModuleType.Canteen);
+        }
+        if (targetLocation == null && result[svTarget] > 0.25 && result[svTarget] <= 0.5)
+        {
+            targetLocation = getModuleIfNotOccupied(ModuleType.ResidentalBay);
+        }
+        if (targetLocation == null && result[svTarget] > 0.5 && result[svTarget] <= 0.75)
+        {
+            targetLocation = getModuleIfNotOccupied(ModuleType.Gym);
+        }
+        if (targetLocation == null && result[svTarget] > 0.75 && result[svTarget] <= 1.0)
+        {
+            targetLocation = getModuleIfNotOccupied(ModuleType.Greenhouse);
+        }
     }
 
     void moveToTarget()
