@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Astronaut : MonoBehaviour
 {
@@ -33,9 +34,17 @@ public class Astronaut : MonoBehaviour
 
     [SerializeField] BaseModule targetLocation = null;
 
+    [SerializeField] float _movementTime = 3f;
+    [SerializeField] Vector3 _maxScale = new Vector3(1.2f,1.2f,1.2f);
+    [SerializeField] AnimationCurve _movementCurve = AnimationCurve.Linear(0, 0, 1, 1);
+    [SerializeField] AnimationCurve _scaleCurve = AnimationCurve.Linear(0, 0, 1, 1);
+    private Coroutine _movingCoroutine;
+    private Coroutine _idleCoroutine;
+
     public HumanStats Stats { get { return _stats; } }
 
-    void initAstronaut() {
+    void initAstronaut()
+    {
         System.Random rnd = new System.Random();
         _stats.Hungry = 0.2f;
         _stats.Thirsty = 0.4f;
@@ -218,7 +227,8 @@ public class Astronaut : MonoBehaviour
         }
     }
 
-    void moveToTarget() {
+    void moveToTarget()
+    {
         Debug.Log("MOVING TO " + targetLocation.ModuleType);
         currentLocation.AstronautExit(this);
         currentLocation = targetLocation;
@@ -226,7 +236,8 @@ public class Astronaut : MonoBehaviour
         targetLocation = null;
     }
 
-    void Update() {
+    void Update()
+    {
         float deltaTime = Time.deltaTime;
 
         if (Base.Instance.AvaliableResources.TryUseResource(BaseResourceType.Oxygen, _oxygenConsumption * deltaTime)) {
@@ -235,6 +246,7 @@ public class Astronaut : MonoBehaviour
             decreaseHealth(oxygenHealthPerSecond * deltaTime);
         }
 
+        if(currentLocation != null)
         if (currentLocation.ModuleType != ModuleType.ResidentalBay)
         {
             increaseTiredness(deltaTime);
@@ -250,6 +262,20 @@ public class Astronaut : MonoBehaviour
             if (targetLocation != null) {
                 moveToTarget();
             }
+        }
+    }
+
+    private IEnumerator MoveToModuleCoroutine(Transform target)
+    {
+        var t = 0f;
+        var startPosition = transform.position;
+        var startScale = transform.localScale;
+        while (t < 1)
+        {
+            transform.position = Vector3.Lerp(startPosition, target.position, _movementCurve.Evaluate(t));
+            transform.localScale = Vector3.Lerp(startScale, _maxScale, t);
+            t = Mathf.Clamp(t + (Time.deltaTime / _movementTime), 0, 1f);
+            yield return null;
         }
     }
 }
