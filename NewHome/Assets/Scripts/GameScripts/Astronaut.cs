@@ -5,25 +5,37 @@ public class Astronaut : MonoBehaviour
     [SerializeField] HumanStats _stats;
     [SerializeField] float _oxygenConsumption = 0.1f;
     [SerializeField] float _carbonProduction = 0.05f;
-    public static float hungerPerSecond = 0.02f;
-    public float thirstPerSecond = 0.03f;
-    public float tirednessPerSecond = 0.01f;
-    public float oxygenHealthPerSecond = 0.1f;
-    public float hungerHealthPerSecond = 0.01f;
-    public float thirstHealthPerSecond = 0.005f;
-    public float tirednessHealthPerSecond = 0.001f;
-    public float hungerTreashold = 0.9f;
-    public float thirstTreashold = 0.8f;
-    public float tirednessTreashold = 0.99f;
-    public BaseModule currentLocation;
-    public BaseModule targetLocation = null;
+    [SerializeField] float hungerPerSecond = 0.02f;
+    [SerializeField] float thirstPerSecond = 0.03f;
+    [SerializeField] float thirstGymPerSecond = 0.04f;
+    [SerializeField] float tirednessPerSecond = 0.01f;
+    [SerializeField] float tirednessResidentalBayPerSecond = 0.04f;
+    [SerializeField] float tirednessGymPerSecond = 0.02f;
+    [SerializeField] float oxygenHealthPerSecond = 0.1f;
+    [SerializeField] float gymHealthPerSecond = 0.005f;
+    [SerializeField] float hungerHealthPerSecond = 0.01f;
+    [SerializeField] float thirstHealthPerSecond = 0.005f;
+    [SerializeField] float tirednessHealthPerSecond = 0.001f;
+    [SerializeField] float hungerTreashold = 0.7f;
+    [SerializeField] float thirstTreashold = 0.6f;
+    [SerializeField] float tirednessTreashold = 0.8f;
+    [SerializeField] float hungerCriticalTreashold = 0.95f;
+    [SerializeField] float thirstCriticalTreashold = 0.85f;
+    [SerializeField] float tirednessCriticalTreashold = 0.99f;
+    [SerializeField] float hungerNormalTreashold = 0.4f;
+    [SerializeField] float thirstNormalTreashold = 0.2f;
+    [SerializeField] float tirednessNormalTreashold = 0.5f;
+
+    [SerializeField] BaseModule currentLocation;
+
+    [SerializeField] BaseModule targetLocation = null;
 
     public HumanStats Stats { get { return _stats; } }
 
     void initAstronaut() {
         System.Random rnd = new System.Random();
-        _stats.Hungry = 0f;
-        _stats.Thirsty = 0f;
+        _stats.Hungry = 0.2f;
+        _stats.Thirsty = 0.4f;
         _stats.Stress = (float) rnd.NextDouble();
         _stats.Agility = (float) rnd.NextDouble();
         _stats.Strength = (float) rnd.NextDouble();
@@ -39,27 +51,52 @@ public class Astronaut : MonoBehaviour
         initAstronaut();
     }
 
-    void increaseTiredness(float deltaTime) {
-        _stats.Tiredness += tirednessPerSecond * deltaTime; 
+    public void increaseTiredness(float deltaTime) {
+        if (currentLocation.ModuleType == ModuleType.Gym)
+        {
+            _stats.Tiredness += tirednessGymPerSecond * deltaTime;
+        }
+        else
+        {
+            _stats.Tiredness += tirednessPerSecond * deltaTime;
+        }
     }
 
-    void increaseHunger(float deltaTime)
+    public void increaseHunger(float deltaTime)
     {
         _stats.Hungry += hungerPerSecond * deltaTime;
     }
 
-    void increaseThurst(float deltaTime)
+    public void increaseThirst(float deltaTime)
     {
-        _stats.Thirsty += thirstPerSecond * deltaTime;
+        if (currentLocation.ModuleType == ModuleType.Gym)
+        {
+            _stats.Thirsty += thirstGymPerSecond * deltaTime;
+        }
+        else
+        {
+            _stats.Thirsty += thirstPerSecond * deltaTime;
+        }
     }
-    void increaseHealth(float healthDelta)
+    public void increaseHealth(float deltaTime)
     {
-        _stats.Health += healthDelta;
+        if (currentLocation.ModuleType == ModuleType.Gym)
+        {
+            _stats.Health += gymHealthPerSecond * deltaTime;
+        }
     }
 
     public void decreaseTiredness(float deltaTime)
     {
-        _stats.Tiredness -= tirednessPerSecond * deltaTime;
+        if (currentLocation.ModuleType == ModuleType.ResidentalBay)
+        {
+            _stats.Tiredness -= tirednessResidentalBayPerSecond * deltaTime;
+        }
+        else
+        {
+            _stats.Tiredness -= tirednessPerSecond * deltaTime;
+        }
+        
     }
 
     public void decreaseHunger(float deltaTime)
@@ -112,13 +149,32 @@ public class Astronaut : MonoBehaviour
                     }
                 });
             }
-        } else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && currentLocation.ModuleType != ModuleType.Canteen) {
+        }
+        else if ((_stats.Hungry > hungerTreashold || _stats.Thirsty > thirstTreashold) && currentLocation.ModuleType != ModuleType.Canteen)
+        {
             Debug.Log("I WANT TO GO TO CANTEEN");
             if (Base.Instance.BaseModules.Count > 0)
             {
                 Base.Instance.BaseModules.ForEach(module =>
                 {
                     if (module.ModuleType == ModuleType.Canteen) {
+                        targetLocation = module;
+                        return;
+                    }
+                });
+            }
+        }
+        else if ((_stats.Hungry < hungerTreashold && _stats.Thirsty < thirstTreashold && _stats.Tiredness < tirednessTreashold &&
+            _stats.Hungry < hungerNormalTreashold && _stats.Thirsty < thirstNormalTreashold && _stats.Tiredness < tirednessNormalTreashold)
+            && currentLocation.ModuleType != ModuleType.Gym)
+        {
+            Debug.Log("I WANT TO GO TO GYM");
+            if (Base.Instance.BaseModules.Count > 0)
+            {
+                Base.Instance.BaseModules.ForEach(module =>
+                {
+                    if (module.ModuleType == ModuleType.Gym)
+                    {
                         targetLocation = module;
                         return;
                     }
@@ -154,7 +210,7 @@ public class Astronaut : MonoBehaviour
         if (currentLocation.ModuleType != ModuleType.Canteen)
         {
             increaseHunger(deltaTime);
-            increaseThurst(deltaTime);
+            increaseThirst(deltaTime);
         }
         calculateHealthDelta(deltaTime);
         if (Base.Instance.BaseModules.Count > 0) {
