@@ -146,6 +146,11 @@ public class Astronaut : MonoBehaviour
     void decreaseHealth(float healthDelta)
     {
         _stats.Health -= healthDelta;
+        if (_stats.Health <= 0)
+        {
+            Debug.Log(gameObject.name + " died.") ;
+            Death();
+        }
     }
 
     void calculateHealthDelta(float deltaTime) {
@@ -305,5 +310,13 @@ public class Astronaut : MonoBehaviour
         {
             callback();
         }
+    }
+
+    private void Death()
+    {
+        StopAllCoroutines();
+        gameObject.SetActive(false);
+        currentLocation.AstronautExit(this);
+        Base.Instance.RemoveAstronaut(this);
     }
 }
