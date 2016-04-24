@@ -4,16 +4,16 @@ using System.Linq;
 
 public class ModuleWorkingPlaces : MonoBehaviour
 {
-    [SerializeField] private List<Transform> _workingPlaces;
+    [SerializeField] List<Transform> _workingPlaces;
 
-    private readonly Dictionary<Transform, Astronaut> _assignements;
+    private Dictionary<Transform, Astronaut> _assignements;
 
     public bool HasFreeWorkingPlace
     {
         get { return _assignements.Any(assignement => assignement.Value == null); }
     }
 
-    public ModuleWorkingPlaces()
+    void Awake()
     {
         _assignements = new Dictionary<Transform, Astronaut>();
         foreach (var workingPlace in _workingPlaces)
