@@ -25,8 +25,11 @@ public class HumanStats
         get { return _hungry; }
         set
         {
-            _hungry = value;
-            RaiseOnChangedEvent();
+            if (value > 0.0f && value < 1.0f)
+            {
+                _hungry = value;
+                RaiseOnChangedEvent();
+            }
         }
     }
 
@@ -35,8 +38,11 @@ public class HumanStats
         get { return _thirsty; }
         set
         {
-            _thirsty = value;
-            RaiseOnChangedEvent();
+            if (value > 0.0f && value < 1.0f)
+            {
+                _thirsty = value;
+                RaiseOnChangedEvent();
+            }
         }
     }
 
@@ -45,8 +51,11 @@ public class HumanStats
         get { return _stress; }
         set
         {
-            _stress = value;
-            RaiseOnChangedEvent();
+            if (value > 0.0f)
+            {
+                _stress = value;
+                RaiseOnChangedEvent();
+            }
         }
     }
 
@@ -55,8 +64,11 @@ public class HumanStats
         get { return _agility; }
         set
         {
-            _agility = value;
-            RaiseOnChangedEvent();
+            if (value > 0.0f)
+            {
+                _agility = value;
+                RaiseOnChangedEvent();
+            }
         }
     }
 
@@ -85,8 +97,11 @@ public class HumanStats
         get { return _tiredness; }
         set
         {
-            _tiredness = value;
-            RaiseOnChangedEvent();
+            if (value > 0.0f && value < 1.0f)
+            {
+                _tiredness = value;
+                RaiseOnChangedEvent();
+            }
         }
     }
 
