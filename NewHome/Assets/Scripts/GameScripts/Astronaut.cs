@@ -91,43 +91,46 @@ public class Astronaut : MonoBehaviour
         _fsAstronaut = new MamdaniFuzzySystem();
 
         fvHunger = new FuzzyVariable("Hunger", 0.0, 1.0);
-        fvHunger.Terms.Add(new FuzzyTerm("minimal", new TriangularMembershipFunction(0.0, 0.05, 0.1)));
-        fvHunger.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.1, 0.15, 0.2)));
-        fvHunger.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.6)));
-        fvHunger.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.6, 0.7, 1.0)));
+        fvHunger.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
+        fvHunger.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvHunger.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
+        fvHunger.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvHunger.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvHunger);
 
         fvThirst = new FuzzyVariable("Thirst", 0.0, 1.0);
-        fvThirst.Terms.Add(new FuzzyTerm("minimal", new TriangularMembershipFunction(0.0, 0.05, 0.1)));
-        fvThirst.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.1, 0.15, 0.2)));
-        fvThirst.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.6)));
-        fvThirst.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.6, 0.7, 1.0)));
+        fvThirst.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
+        fvThirst.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvThirst.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
+        fvThirst.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvThirst.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvThirst);
 
         fvTiredness = new FuzzyVariable("Tiredness", 0.0, 1.0);
-        fvTiredness.Terms.Add(new FuzzyTerm("minimal", new TriangularMembershipFunction(0.0, 0.05, 0.1)));
-        fvTiredness.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.1, 0.15, 0.2)));
-        fvTiredness.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.7)));
-        fvTiredness.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.7, 0.8, 1.0)));
+        fvTiredness.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
+        fvTiredness.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvTiredness.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
+        fvTiredness.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvTiredness.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvTiredness);
 
-        FuzzyVariable svTarget = new FuzzyVariable("Target", -1.0, 1.0);
-        svTarget.Terms.Add(new FuzzyTerm("sleep", new TriangularMembershipFunction(-1.0, -0.75, -0.5 )));
-        svTarget.Terms.Add(new FuzzyTerm("work", new TriangularMembershipFunction(-0.5, 0.0, 0.5 )));
-        svTarget.Terms.Add(new FuzzyTerm("eat", new TriangularMembershipFunction(0.5 , 0.75, 1.0 )));
+        FuzzyVariable svTarget = new FuzzyVariable("Target", 0, 1.0);
+        svTarget.Terms.Add(new FuzzyTerm("sleep", new TrapezoidMembershipFunction(0.0, 0.0, 0.3, 0.4)));
+        svTarget.Terms.Add(new FuzzyTerm("eat", new TrapezoidMembershipFunction(0.1, 0.3, 0.6, 0.7)));
+        svTarget.Terms.Add(new FuzzyTerm("work", new TrapezoidMembershipFunction(0.6 , 0.6, 1.0, 1.0)));
         _fsAstronaut.Output.Add(svTarget);
 
-        MamdaniFuzzyRule rule1 = _fsAstronaut.ParseRule("if (Hunger is high) or (Thirst is high) then (Target is eat)");
-        MamdaniFuzzyRule rule2 = _fsAstronaut.ParseRule("if (Tiredness is high) then (Target is sleep)");
+        MamdaniFuzzyRule rule1 = _fsAstronaut.ParseRule("if (Hunger is high) or (Thirst is high) or (Hunger is maximal) or (Thirst is maximal) then (Target is eat)");
+        MamdaniFuzzyRule rule2 = _fsAstronaut.ParseRule("if (Tiredness is high) or (Tiredness is maximal) then (Target is sleep)");
         MamdaniFuzzyRule rule3 = _fsAstronaut.ParseRule("if (Hunger is low) and (Thirst is low) and (Tiredness is low) then (Target is work)");
-        //MamdaniFuzzyRule rule4 = _fsAstronaut.ParseRule("if (Hunger is normal) and (Thirst is normal) and (Tiredness is normal) then (Target is work)");
-        MamdaniFuzzyRule rule5 = _fsAstronaut.ParseRule("if (Hunger is minimal) or (Thirst is minimal) or (Tiredness is minimal) then (Target is work)");
+        MamdaniFuzzyRule rule4 = _fsAstronaut.ParseRule("if (Hunger is normal) and (Thirst is normal) and (Tiredness is normal) then (Target is work)");
+        //MamdaniFuzzyRule rule5 = _fsAstronaut.ParseRule("if (Hunger is minimal) and (Thirst is minimal) then (Target is not eat)");
 
         _fsAstronaut.Rules.Add(rule1);
         _fsAstronaut.Rules.Add(rule2);
         _fsAstronaut.Rules.Add(rule3);
-        //_fsAstronaut.Rules.Add(rule4);
-        _fsAstronaut.Rules.Add(rule5);
+        _fsAstronaut.Rules.Add(rule4);
+        //_fsAstronaut.Rules.Add(rule5);
 
         System.Random rnd = new System.Random();
         _stats.Stress = (float)rnd.NextDouble();
@@ -286,28 +289,18 @@ public class Astronaut : MonoBehaviour
 
         targetLocation = null;
         Dictionary<FuzzyVariable, double> result = _fsAstronaut.Calculate(inputValues);
-        Debug.Log("target location? " + (targetLocation != null));
-        foreach (FuzzyVariable value in result.Keys)
-        {
-            Debug.Log(value.Name);
-        }
-        foreach (double value in result.Values) {
-            Debug.Log(value);
-        }
-        Debug.Log("EAT? " + (result[svTarget] >= -1.0f && result[svTarget] <= -0.5f).ToString());
-        Debug.Log("SLEEP? " + (result[svTarget] > 0.5f && result[svTarget] <= 1.0f).ToString());
-        Debug.Log("WORK? " + (result[svTarget] > -0.5f && result[svTarget] <= 0.50f).ToString());
-        if (targetLocation == null && result[svTarget] <= -0.1f)
+        Debug.Log("fuzzy result: " + result[svTarget]);
+        if (targetLocation == null && result[svTarget] >= 0.0f && result[svTarget] < 0.3f)
         {
             Debug.Log("I WANT TO GO TO SLEEP");
             targetLocation = getModuleIfNotOccupied(ModuleType.ResidentalBay);
         }
-        if (targetLocation == null && result[svTarget] >= 0.1f)
+        if (targetLocation == null && result[svTarget] >= 0.3f && result[svTarget] < 0.6f)
         {
             Debug.Log("I WANT TO GO TO CANTEEN");
             targetLocation = getModuleIfNotOccupied(ModuleType.Canteen);
         }
-        if (targetLocation == null && result[svTarget] > -0.1f && result[svTarget] < 0.1f)
+        if (targetLocation == null && result[svTarget] >= 0.6f)
         {
             Debug.Log("I WANT TO GO WORK");
             System.Random rnd = new System.Random();
