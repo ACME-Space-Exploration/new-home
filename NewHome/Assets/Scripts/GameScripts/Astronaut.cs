@@ -92,42 +92,42 @@ public class Astronaut : MonoBehaviour
 
         fvHunger = new FuzzyVariable("Hunger", 0.0, 1.0);
         fvHunger.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
-        fvHunger.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvHunger.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.3, 0.5)));
         fvHunger.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
-        fvHunger.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvHunger.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.5, 0.7, 1.0)));
         fvHunger.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvHunger);
 
         fvThirst = new FuzzyVariable("Thirst", 0.0, 1.0);
         fvThirst.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
-        fvThirst.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvThirst.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.3, 0.5)));
         fvThirst.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
-        fvThirst.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvThirst.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.5, 0.7, 1.0)));
         fvThirst.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvThirst);
 
         fvTiredness = new FuzzyVariable("Tiredness", 0.0, 1.0);
         fvTiredness.Terms.Add(new FuzzyTerm("minimal", new TrapezoidMembershipFunction(0.0, 0.0, 0.2, 0.2)));
-        fvTiredness.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.2, 0.6)));
+        fvTiredness.Terms.Add(new FuzzyTerm("low", new TriangularMembershipFunction(0.0, 0.3, 0.5)));
         fvTiredness.Terms.Add(new FuzzyTerm("normal", new TriangularMembershipFunction(0.2, 0.5, 0.8)));
-        fvTiredness.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.4, 0.8, 1.0)));
+        fvTiredness.Terms.Add(new FuzzyTerm("high", new TriangularMembershipFunction(0.5, 0.7, 1.0)));
         fvTiredness.Terms.Add(new FuzzyTerm("maximal", new TrapezoidMembershipFunction(0.8, 0.8, 1.0, 1.0)));
         _fsAstronaut.Input.Add(fvTiredness);
 
         FuzzyVariable svTarget = new FuzzyVariable("Target", 0, 1.0);
-        svTarget.Terms.Add(new FuzzyTerm("sleep", new TrapezoidMembershipFunction(0.0, 0.0, 0.3, 0.4)));
-        svTarget.Terms.Add(new FuzzyTerm("eat", new TrapezoidMembershipFunction(0.1, 0.3, 0.6, 0.7)));
+        svTarget.Terms.Add(new FuzzyTerm("sleep", new TrapezoidMembershipFunction(0.0, 0.0, 0.3, 0.6)));
+        svTarget.Terms.Add(new FuzzyTerm("eat", new TrapezoidMembershipFunction(0.3, 0.5, 0.6, 0.7)));
         svTarget.Terms.Add(new FuzzyTerm("work", new TrapezoidMembershipFunction(0.6 , 0.6, 1.0, 1.0)));
         _fsAstronaut.Output.Add(svTarget);
 
         MamdaniFuzzyRule rule1 = _fsAstronaut.ParseRule("if (Hunger is high) or (Thirst is high) or (Hunger is maximal) or (Thirst is maximal) then (Target is eat)");
-        MamdaniFuzzyRule rule2 = _fsAstronaut.ParseRule("if (Tiredness is high) or (Tiredness is maximal) then (Target is sleep)");
+        MamdaniFuzzyRule rule2 = _fsAstronaut.ParseRule("if (Tiredness is normal) or(Tiredness is high) or (Tiredness is maximal) then (Target is sleep)");
         MamdaniFuzzyRule rule3 = _fsAstronaut.ParseRule("if (Hunger is low) and (Thirst is low) and (Tiredness is low) then (Target is work)");
-        MamdaniFuzzyRule rule4 = _fsAstronaut.ParseRule("if (Hunger is normal) and (Thirst is normal) and (Tiredness is normal) then (Target is work)");
+        MamdaniFuzzyRule rule4 = _fsAstronaut.ParseRule("if (Hunger is normal) and (Thirst is normal) and (Tiredness is low) then (Target is work)");
         //MamdaniFuzzyRule rule5 = _fsAstronaut.ParseRule("if (Hunger is minimal) and (Thirst is minimal) then (Target is not eat)");
 
-        _fsAstronaut.Rules.Add(rule1);
         _fsAstronaut.Rules.Add(rule2);
+        _fsAstronaut.Rules.Add(rule1);
         _fsAstronaut.Rules.Add(rule3);
         _fsAstronaut.Rules.Add(rule4);
         //_fsAstronaut.Rules.Add(rule5);
