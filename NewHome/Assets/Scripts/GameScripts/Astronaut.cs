@@ -14,7 +14,6 @@ public class Astronaut : MonoBehaviour
     private FuzzyVariable fvThirst;
     private FuzzyVariable fvTiredness;
 
-
     [SerializeField]
     float _oxygenConsumption = 0.1f;
     [SerializeField]
@@ -32,7 +31,9 @@ public class Astronaut : MonoBehaviour
     [SerializeField]
     float tirednessPerSecond = 0.01f;
     [SerializeField]
-    float tirednessResidentalBayPerSecond = 0.05f;
+    static float tirednessGreenhousePerSecond = 0.025f;
+    [SerializeField]
+    static float tirednessResidentalBayPerSecond = 0.05f;
     [SerializeField]
     float tirednessGymPerSecond = 0.035f;
     [SerializeField]
@@ -65,6 +66,14 @@ public class Astronaut : MonoBehaviour
     float tirednessNormalTreashold = 0.5f;
     [SerializeField]
     float tirednessMinimalTreashold = 0.1f;
+
+
+    float restCycle = tirednessResidentalBayPerSecond * 50;
+    float napCycle = tirednessResidentalBayPerSecond * 200;
+    float sleepCycle = tirednessResidentalBayPerSecond * 500;
+
+    float timeSpentInArea = 0;
+    float timeTargetSpentInArea = 0;
 
     [SerializeField]
     BaseModule currentLocation;
@@ -292,13 +301,35 @@ public class Astronaut : MonoBehaviour
         Debug.Log("fuzzy result: " + result[svTarget]);
         if (targetLocation == null && result[svTarget] >= 0.0f && result[svTarget] < 0.3f)
         {
-            Debug.Log("I WANT TO GO TO SLEEP");
+            Debug.Log("I WANT TO GO TO RESIDENTIAL AREA");
             targetLocation = getModuleIfNotOccupied(ModuleType.ResidentalBay);
+            if (null != targetLocation)
+            {
+                if (_stats.Tiredness < 0.3)
+                {
+                    Debug.Log("I WANT TO REST THERE");
+                    timeTargetSpentInArea = restCycle;
+                }
+                else if (_stats.Tiredness < 0.6)
+                {
+                    Debug.Log("I WANT TO NAP THERE");
+                    timeTargetSpentInArea = napCycle;
+                }
+                else
+                {
+                    Debug.Log("I WANT TO SLEEP THERE");
+                    timeTargetSpentInArea = sleepCycle;
+                }
+            }
         }
         if (targetLocation == null && result[svTarget] >= 0.3f && result[svTarget] < 0.6f)
         {
             Debug.Log("I WANT TO GO TO CANTEEN");
             targetLocation = getModuleIfNotOccupied(ModuleType.Canteen);
+            if (null != targetLocation)
+            {
+                timeTargetSpentInArea = hungerCanteenPerSecond * 100;
+            }
         }
         if (targetLocation == null && result[svTarget] >= 0.6f)
         {
@@ -307,10 +338,14 @@ public class Astronaut : MonoBehaviour
             if ((float)rnd.NextDouble() >= 0.5f)
             {
                 targetLocation = getModuleIfNotOccupied(ModuleType.Greenhouse);
+                if(null != targetLocation)
+                    timeTargetSpentInArea = tirednessGreenhousePerSecond * 300;
             }
             else
             {
                 targetLocation = getModuleIfNotOccupied(ModuleType.Gym);
+                if (null != targetLocation)
+                    timeTargetSpentInArea = tirednessGymPerSecond * 200;
             }
         }
     }
@@ -336,7 +371,8 @@ public class Astronaut : MonoBehaviour
     void Update()
     {
         float deltaTime = Time.deltaTime;
-
+        timeSpentInArea += deltaTime;
+        Debug.Log(timeSpentInArea + " from " + timeTargetSpentInArea);
         if (Base.Instance.AvaliableResources.TryUseResource(BaseResourceType.Oxygen, _oxygenConsumption * deltaTime))
         {
             Base.Instance.AvaliableResources.AddResource(BaseResourceType.Carbon, _carbonProduction * deltaTime);
@@ -360,12 +396,16 @@ public class Astronaut : MonoBehaviour
             increaseThirst(deltaTime);
         }
         calculateHealthDelta(deltaTime);
-        if (Base.Instance.BaseModules.Count > 0)
+        if (!(timeSpentInArea < timeTargetSpentInArea))
         {
-            chooseTargetLocation();
-            if (targetLocation != null && !_isMoving && currentLocation != targetLocation)
+            if (Base.Instance.BaseModules.Count > 0)
             {
-                moveToTarget();
+                chooseTargetLocation();
+                if (targetLocation != null && !_isMoving && currentLocation != targetLocation)
+                {
+                    moveToTarget();
+                    timeSpentInArea = 0;
+                }
             }
         }
     }
